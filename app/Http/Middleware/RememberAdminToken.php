@@ -30,7 +30,7 @@ class RememberAdminToken
             return redirect()->route('login');
         }
 
-        Log::info("ADMIN REMEMBER TOKEN", ['token' => $admin->remember_token]);
+        // Log::info("ADMIN REMEMBER TOKEN", ['token' => $admin->remember_token]);
         return $next($request);
     }
 }

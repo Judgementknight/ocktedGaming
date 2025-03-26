@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\OcktedUserModel;
+use App\Models\OcktedStudentModel;
 use App\Models\OcktedScoreModel;
 use App\Models\OcktedGameModel;
+use App\Models\OcktedTeacherModel;
+use App\Models\OcktedGameroomModel;
 use Illuminate\Support\Facades\DB;
 
 class OcktedGamingController extends Controller
@@ -21,165 +23,100 @@ class OcktedGamingController extends Controller
         $silver = 500;
         Log::info("assign rank score",['sad' => $totalScore]);
         Log::info("assign rank user",['sad' => $userId]);
-        $user = OcktedUserModel::where('user_id', $userId)->first();
-        Log::info("ID",['data'=>$user]);
+
+        $student = OcktedStudentModel::where('ocktedgaming_id', $userId)->first();
+        Log::info("ID",['data'=>$student]);
         if($totalScore > $silver){
-            $user->update([
+            $student->update([
                 'rank' => 'Gold',
             ]);
         }elseif($totalScore > $bronze){
-            $user->update([
+            $student->update([
                 'rank' => 'Silver',
             ]);
         }elseif($totalScore < $bronze){
-            $user->update([
+            $student->update([
                 'rank' => 'Bronze',
             ]);
         }
-        return ['user' => $user];
+        return ['student' => $student];
     }
 
-    public function displayWelcomePage()
+    public function displayWelcomePage(Request $request)
     {
         try{
+            Log::info("TRIGGER", ['URL' => $request->fullUrl(), 'Method' => $request->method()]);
             Log::info( "TRIGGER");
             $response = Http::get('http://127.0.0.1:8005/user-data');  //this will the prayagedu User Get Request
             if($response->successful())
             {
-                //Decrypting User Data from Prayag Edu
+                // Decrypting User Data from Prayag Edu
                 $encrypted_data = $response->json('data');
                 $secretKey = env('ENCRYPTION_KEY');
                 $decrypted_data = $this->decryptData($encrypted_data, $secretKey);
                 $data = json_decode($decrypted_data, true);
-                Log::info("Data", ['User Data Json' => $data]);
+                // Log::info("Data", ['User Data Json' => $data]);
 
-                $session_key = $data['session_key'] ?? null;
-                $user_id = $session_key['user_id'] ?? null;
-                $code = $data['school_code'] ?? null;
-                $username = $data['username'] ?? null;
-                $picture = $data['profile_picture'] ?? null;
+                // Extract common data
+                $studentId     = $data['student_id'] ?? null;
+                $teacherId     = $data['teacher_id'] ?? null;
+                $code        = $data['school_code'] ?? null;
+                $username    = $data['username'] ?? null;
+                $picture     = $data['profile_picture'] ?? null;
+                $token       = $data['game_token'] ?? null;
 
+                $Data = [
+                    'student_id' => $studentId,
+                    'teacher_id' => $teacherId,
+                    'school_code' => $code,
+                    'username' => $username,
+                    'profile_picture' => $picture,
+                    'game_token' => $token,
+                ];
 
-                $teacher_game_token = $data['teacher_game_token'] ?? null;
-                $game_token = $data['game_token'] ?? null;
+                Log::info("Data", ['data' => $Data]);
 
-                //how to send this as a post
-                if(!$game_token){                   //creating Game Token For New Users
-                    $game_token = $this->createToken();
+                if (array_key_exists('student_id', $data)) {
+                    info('STUDENT DETECTED');
+                    $studentExists = OcktedStudentModel::where('student_id', $studentId)->first();
+                    Log::info("Student Data", ['data:' => $studentExists]);
 
-                    // send token to prayagEdu
-                    $response = Http::post('create token for student', [
-                        'game_token' => $game_token
-                    ]);
-                }elseif(!$teacher_game_token){
-                    $teacher_game_token = $this->createToken();
-
-                    $response = Http::post('create token for teacher',[
-                        'teacher_game_token' => $teacher_game_token
-                    ]);
-
-                    return response()->json([
-                        'token' => $token,
-                    ]);
-                }
-
-                if($game_token && $user_id && $code && $username && $picture){
-                    $userData = [
-                        'user_id' => $user_id,
-                        'game_token' => $game_token,
-                        'school_code' => $code,
-                        'username' => $username,
-                        'profile_picture' => $picture,
-                    ];
-
-                    $userExists = OcktedUserModel::where('game_token',$game_token)->where('user_id', $user_id)->first();
-                    Log::info("USer Exists",['Data:' => $userExists]);
-
-                    if(!$userExists){           //storing user data in DB if the user is new
-                        $user = OcktedUserModel::create([
-                            'user_id' => $user_id,
-                            'username' => $username,
-                            'school_code' => $code,
-                            'game_token' => $game_token,
-                            'profile_picture' => $picture,
-                        ]);
-
-                        session()->put('User Data', $user);
-                        $session = session()->get('User Data');
-                        Log::info("SESSION DATA", ['User Data' => $session]);
-                        Log::info("User Data Created", ["data:" => $user]);
-
-
-                        return view('Main-Pages.start-page');
+                    if (!$studentExists) {
+                        session()->put('Student JSON Data', $Data);
+                        return view('Main-Pages.start-page-student');
+                    } else {
+                        // If the student's profile setup is incomplete, show the start page
+                        if (empty($studentExists->ocktedgaming_student_username)) {
+                            return view('Main-Pages.start-page-student');
+                        } else {
+                            // Profile setup complete; redirect to ockted homepage
+                            session()->put('Student Data', $studentExists);
+                            return redirect()->route('ockted');
+                        }
                     }
-
-                    session()->put('User Data', $userExists);   //put user data in session
-                    return redirect()->route('ockted');
-                    // info('ITS HITING OCKTEDHOMEPAGE');
-                    // $user = session()->get('User Data');
-                    // Log::info("User Data", ["(OCKTED HOMEPAGE)" => $user]);
-
-                    // //convert the image to link
-                    // $score = OcktedUserModel::with('scores')->where('user_id', $user->user_id)->first();
-                    // $totalScore = $score->scores()->sum('score');
-                    // Log::info('Score', ['data:' => $totalScore]);
-
-                    // $recentGame = OcktedUserModel::with('scores')->where('user_id', $user->user_id)->first();
-                    // $recent = $recentGame->scores()->latest()->take(3)->get();
-
-                    // $gameData = OcktedGameModel::all();
-                    // Log::info("Game", ['data:' => $gameData]);
-                    // $totalGames = $gameData->count();
-                    // Log::info("Total Game Count", ['data' => $totalGames]);
-
-                    // $userId = $user['user_id'];
-                    // $game_token = $user['game_token'];
-
-                    // $user = $this->assignRank($totalScore, $userId);         //assign rank
-                    // Log::info("RANK", ['rank' => $user]);
-
-                    // $encrypted_token = $this->encryptToken($game_token);        //encrypting game_token which is gonna pass as an URL params
-                    // Log::info("Encrypt Token", ['token' => $encrypted_token]);
-
-
-                    // // //data to be send to the view page
-                    // // $combinedData = ['User Data' => $userExists,'Game Data' => $gameData, 'Score Data' => $recent , 'Total Score' => $totalScore, 'gameToken' => $encrypted_token];
-
-                    // $combinedData = ['User Data' => $user, 'Game Data' => $gameData, 'Total Games' => $totalGames, 'Total Score' => $totalScore, 'Recent Games Played' => $recent, 'gameToken' => $encrypted_token];
-                    // Log::info("combined Data", ['data' => $combinedData]);
-                    // return response()->json([
-                    //     'data' => $combinedData,
-                    // ]);
-                }elseif($teacher_game_token && $code && $user_id && $username && $picture){
-                    $teacherData = [
-                        'username' => $username,
-                        'teacher_game_token' => $teacher_game_token,
-                        'school_code' => $code,
-                        'user_id' => $user_id,
-                        'profile_picture' => $picture,
-                    ];
-
-                    $teacherExists = OcktedTeacherModel::where('teacher_game_token', $teacher_game_token)->first();
-
+                }
+                elseif(array_key_exists('teacher_id', $data)){
+                    info('Teacher Detected');
+                    $teacherExists = OcktedTeacherModel::where('teacher_id', $teacherId)->first();
+                    Log::info("Teacher Data Exists?",['data' => $teacherExists]);
                     if(!$teacherExists){
-                        $teacher = OcktedTeacherModel::create($teacherData);
-                        session()->put('Teacher Data', $teacherData);
 
-                        return view('Main-Pages.start-page');
+                        session()->put('Teacher JSON Data', $Data);
+                        return view('Main-Pages.start-page-teacher');
+                    }else {
+                        //Check if profile setup is complete
+                        if (empty($teacherExists->ocktedgaming_teacher_username)) {
+                            //Show start page to complete setup
+                            return view('Main-Pages.start-page-teacher');
+                        } else {
+                            //Redirect to ockted homepage
+                            session()->put('Teacher Data', $teacherExists);
+                            return redirect()->route('ockted');
+                        }
                     }
-
-                    session()->put('Teacher Data', $teacherData);
-                    return redirect()->route('ockted');
-
-                } else {
-                    return response()->json([
-                        'message' => 'Validation Failed'
-                    ]);
                 }
-            }else{
-                return response()->json([
-                    'message'=> 'User API ERROR',
-                ]);
+            }else {
+                return response()->json(['message' => 'User API ERROR']);
             }
         }catch(Exception $e){
             Log::error("Error", ['Error' => $e->getMessage()]);
@@ -189,41 +126,98 @@ class OcktedGamingController extends Controller
         }
     }
 
-    public function createOcktedUserName(Request $request)
+    public function createOcktedStudent(Request $request)
     {
         try{
-            $sessionUser = session()->get('User Data');
+            $sessionUser = session()->get('Student JSON Data');
             Log::info("SESSION DATA BOIII", ['data:' => $sessionUser]);
 
-            $userId = $sessionUser->user_id;
+            $studentId = $sessionUser['student_id'];
+            $code      = $sessionUser['school_code'];
+            $username  = $sessionUser['username'];
+            $picture   = $sessionUser['profile_picture'];
 
-            Log::info("Processing createOcktedUser", ['user_id' => $userId]);
+            $gameToken = $this->createToken();
+            $ocktedGamingId = $this->generateOcktedGamingIdForStudent();
 
-            // Retrieve the ockted_username from the request
+            //Retrieve the ockted_username from the request
             $ocktedUsername = $request->input('ockted_username');
 
-            // Initialize a variable for the file path
+            //Initialize a variable for the file path
             $filePath = null;
             $fileUrl = null;
 
-            // Check if the file is uploaded and is valid
+            //Check if the file is uploaded and is valid
             if ($request->hasFile('profile_picture') && $request->file('profile_picture')->isValid()) {
-                // Store the image in the "profile_pictures" directory on the public disk
+                //Store the image in the "profile_pictures" directory on the public disk
                 $filePath = $request->file('profile_picture')->store('profile_pictures', 'public');
-
                 $fileUrl = \Illuminate\Support\Facades\Storage::url($filePath);
             }
 
-            $user = OcktedUserModel::where('user_id', $userId)->first();
-            Log::info("User found", ['data' => $user]);
+            $student = OcktedStudentModel::create([
+                        'student_id'      => $studentId,
+                        'ocktedgaming_id' => $ocktedGamingId,
+                        'student_name'    => $username,
+                        'ocktedgaming_student_username' => $ocktedUsername,
+                        'school_code'     => $code,
+                        'game_token'      => $gameToken,
+                        'profile_picture' => $fileUrl ? $fileUrl : $user->profile_picture,
+                    ]);
 
-            // Update the user with the new username and image path (if uploaded)
-            $user->update([
-                'ockted_username' => $ocktedUsername,
-                'profile_picture' => $fileUrl ? $fileUrl : $user->profile_picture,
-            ]);
+            session()->put('Student Data', $student);
+            Log::info("Session Data", ['data:' => session('Student Data')]);
 
-            Log::info("User Updated", ['data' => $user]);
+            return redirect()->route('ockted');
+
+        }catch(Exception $e){
+
+            Log::error("Error", ['data' => $e->getMessage()]);
+
+        }
+
+    }
+
+    public function createOcktedTeacher(Request $request)
+    {
+        try{
+            $sessionUser = session()->get('Teacher JSON Data');
+            Log::info("SESSION DATA BOIII", ['data:' => $sessionUser]);
+
+            $teacherId = $sessionUser['teacher_id'];
+            $code      = $sessionUser['school_code'];
+            $username  = $sessionUser['username'];
+            $picture   = $sessionUser['profile_picture'];
+
+            $gameToken = $this->createToken();
+            $ocktedGamingId = $this->generateOcktedGamingIdForTeacher();
+
+            //Retrieve the ockted_username from the request
+            $ocktedUsername = $request->input('ockted_username');
+
+            //Initialize a variable for the file path
+            $filePath = null;
+            $fileUrl = null;
+
+            //Check if the file is uploaded and is valid
+            if ($request->hasFile('profile_picture') && $request->file('profile_picture')->isValid()) {
+                //Store the image in the "profile_pictures" directory on the public disk
+                $filePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+                $fileUrl = \Illuminate\Support\Facades\Storage::url($filePath);
+            }
+
+            $teacher = OcktedTeacherModel::create([
+                        'teacher_id'      => $teacherId,
+                        'ocktedgaming_id' => $ocktedGamingId,
+                        'teacher_name'    => $username,
+                        'ocktedgaming_teacher_username' => $ocktedUsername,
+                        'school_code'     => $code,
+                        'game_token'      => $gameToken,
+                        'profile_picture' => $fileUrl ? $fileUrl : $user->profile_picture,
+                    ]);
+
+            Log::info("Teacher Created!!", ['data:' => $teacher]);
+            session()->put('Teacher Data', $teacher);
+            Log::info("Session Data", ['data:' => session('Student Data')]);
 
             return redirect()->route('ockted');
 
@@ -276,11 +270,11 @@ class OcktedGamingController extends Controller
                         'profile_picture' => $picture,
                     ];
 
-                    $userExists = OcktedUserModel::where('game_token',$game_token)->where('user_id', $user_id)->first();
+                    $userExists = OcktedStudentModel::where('game_token',$game_token)->where('user_id', $user_id)->first();
                     Log::info("USer Exists",['Data:' => $userExists]);
 
                     if(!$userExists){           //storing user data in DB if the user is new
-                        $user = OcktedUserModel::create([
+                        $user = OcktedStudentModel::create([
                             'user_id' => $user_id,
                             'username' => $username,
                             'school_code' => $code,
@@ -307,12 +301,12 @@ class OcktedGamingController extends Controller
                         return response()->json(["message" => 'User Doesnt Exists'], 401);
                     }
 
-                    $score = OcktedUserModel::with('scores')->where('user_id', $user['user_id'])->first();   //
+                    $score = OcktedStudentModel::with('scores')->where('user_id', $user['user_id'])->first();   //
                     $total = $score->scores->sum('score');     //Fetching Total Scores of User
                     $recent = $score->scores()->latest()->take(3)->get();           //recent Games Played
                     $userId = $user['user_id'];
 
-                    // $update = OcktedUserModel::where('user_id',$user_id)->update(['user_status' => 'Active']);
+                    // $update = OcktedStudentModel::where('user_id',$user_id)->update(['user_status' => 'Active']);
                     // Log::info("Updated", ['data' => $update]);
 
                     $user = $this->assignRank($total, $userId);         //assign rank
@@ -353,56 +347,94 @@ class OcktedGamingController extends Controller
     public function ocktedHomepage()
     {
         info('ITS HITING OCKTEDHOMEPAGE');
-        $user = session()->get('User Data');
-        Log::info("User Data", ["(OCKTED HOMEPAGE)" => $user]);
+        if(session()->has('Student Data')){
+            $student = session()->get('Student Data');
+            $studentId = $student->ocktedgaming_id;
+            Log::info("User Data", ["OCKTED HOMEPAGE" => $student]);
 
-        //convert the image to link
-        $score = OcktedUserModel::with('scores')->where('user_id', $user->user_id)->first();
-        $totalScore = $score->scores()->sum('score');
-        Log::info('Score', ['data:' => $totalScore]);
+            $score = OcktedStudentModel::with('scores')->where('ocktedgaming_id', $studentId)->first();
+            $totalScore = $score->scores()->sum('score');
+            Log::info('Score', ['data:' => $totalScore]);
 
-        // $recentGame = OcktedUserModel::with('scores.game')->where('user_id', $user->user_id)->first();
-        // $recent = $recentGame->scores()->latest()->take(3)->get();
+            // $recentGame = OcktedStudentModel::with('scores.game')->where('user_id', $user->user_id)->first();
+            // $recent = $recentGame->scores()->latest()->take(3)->get();
 
-        $recent = DB::table('ockted_score')
-                  ->join('ockted_users', 'ockted_score.user_id', '=', 'ockted_users.user_id')
-                  ->join('ockted_games', 'ockted_score.game_code', '=', 'ockted_games.game_code')
-                  ->select('ockted_games.game_title','ockted_score.score')
-                  ->where('ockted_users.user_id', $user->user_id)
-                  ->orderBy('ockted_score.created_at', 'desc')
-                  ->limit(3)
-                  ->get();
+            $recent = DB::table('ockted_score')
+                      ->join('ockted_students', 'ockted_score.ocktedgaming_id', '=', 'ockted_students.ocktedgaming_id')
+                      ->join('ockted_games', 'ockted_score.game_code', '=', 'ockted_games.game_code')
+                      ->select('ockted_games.game_title','ockted_score.score')
+                      ->where('ockted_students.ocktedgaming_id', $studentId)
+                      ->orderBy('ockted_score.created_at', 'desc')
+                      ->limit(3)
+                      ->get();
 
 
-        $status = "Active";
-        $gameData = OcktedGameModel::where('game_status', $status)->get();
-        Log::info("Active Game", ['data:' => $gameData]);
-        $totalGames = $gameData->count();
-        Log::info("Total Game Count", ['data' => $totalGames]);
+            //getting active games
+            $status = "Active";
+            $gameData = OcktedGameModel::where('game_status', $status)->get();
+            Log::info("Active Game", ['data:' => $gameData]);
 
-        $userId = $user['user_id'];
-        $game_token = $user['game_token'];
+            //getting total games
+            $totalGames = $gameData->count();
+            Log::info("Total Game Count", ['data' => $totalGames]);
 
-        $user = $this->assignRank($totalScore, $userId);         //assign rank
-        Log::info("RANK", ['rank' => $user]);
+            $userId = $student->ocktedgaming_id;
+            $game_token = $student->game_token;
 
-        $encrypted_token = $this->encryptToken($game_token);        //encrypting game_token which is gonna pass as an URL params
-        Log::info("Encrypt Token", ['token' => $encrypted_token]);
+            $student = $this->assignRank($totalScore, $userId);         //assign rank
+            Log::info("RANK", ['rank' => $student]);
 
-        $last = session()->get('last_visited_page');
-        Log::info("last page",['page' => $last]);
+            $encrypted_token = $this->encryptToken($game_token);        //encrypting game_token which is gonna pass as an URL params
+            Log::info("Encrypt Token", ['token' => $encrypted_token]);
 
-        // //data to be send to the view page
-        // $combinedData = ['User Data' => $userExists,'Game Data' => $gameData, 'Score Data' => $recent , 'Total Score' => $totalScore, 'gameToken' => $encrypted_token];
+            $combinedData = ['Student Data' => $student, 'Game Data' => $gameData, 'Total Games' => $totalGames, 'Total Score' => $totalScore, 'Recent Games Played' => $recent, 'gameToken' => $encrypted_token];
+            Log::info("combined Data", ['data' => $combinedData]);
+            // return response()->json([
+            //     'data' => $combinedData,
+            // ]);
 
-        $combinedData = ['User Data' => $user, 'Game Data' => $gameData, 'Total Games' => $totalGames, 'Total Score' => $totalScore, 'Recent Games Played' => $recent, 'gameToken' => $encrypted_token];
-        Log::info("combined Data", ['data' => $combinedData]);
-        // return response()->json([
-        //     'data' => $combinedData,
-        // ]);
+            return view('Main-Pages.homepage', compact('combinedData'));
+        }
 
-        return view('Main-Pages.homepage', compact('combinedData'));
+        elseif (session()->has('Teacher Data')) {
+            $teacher = session()->get('Teacher Data');
+            Log::info("Teacher Data", ['data' => $teacher]);
 
+            //getting active games
+            $status = "Active";
+            $gameData = OcktedGameModel::where('game_status', $status)->get();
+            Log::info("Active Game", ['data:' => $gameData]);
+
+            //getting total games
+            $totalGames = $gameData->count();
+            Log::info("Total Game Count", ['data' => $totalGames]);
+
+            $userId = $teacher->ocktedgaming_id;
+            $game_token = $teacher->game_token;
+
+            $score = OcktedTeacherModel::with('scores')->where('ocktedgaming_id', $userId)->first();
+            $totalScore = $score->scores()->sum('score');
+
+            $teacherId = $teacher->teacher_id;
+            $gameroom = OcktedGameroomModel::where('teacher_id', $teacherId)->get();
+
+            $encrypted_token = $this->encryptToken($game_token);        //encrypting game_token which is gonna pass as an URL params
+            Log::info("Encrypt Token", ['token' => $encrypted_token]);
+
+            $combinedData = ['Teacher Data' => $teacher, 'Game Data' => $gameData, 'Total Games' => $totalGames, 'Total Score' => $totalScore, 'gameToken' => $encrypted_token, 'Game Room' => $gameroom];
+            Log::info("combined Data", ['data' => $combinedData]);
+
+            // return response()->json([
+            //     'data' => $combinedData,
+            // ]);
+
+            return view('TeacherDashboard.teacher-dashboard', compact('combinedData'));
+
+        }
+
+        else{
+            info('No Session Available');
+        }
 
     }
 
@@ -485,6 +517,28 @@ class OcktedGamingController extends Controller
         return $token;
     }
 
+    function generateOcktedGamingIdForStudent()
+    {
+        $ocktedGamingId = 'OGS' . rand(10000, 99999);
+        $OctedIdExists = OcktedStudentModel::where('ocktedgaming_id', $ocktedGamingId)->first();
+        if(!$OctedIdExists){
+            return $ocktedGamingId;
+        }else{
+            return $this->generateOcktedGamingIdForStudent();
+        }
+    }
+
+    function generateOcktedGamingIdForTeacher()
+    {
+        $ocktedGamingId = 'OGT' . rand(10000, 99999);
+        $OctedIdExists = OcktedTeacherModel::where('ocktedgaming_id', $ocktedGamingId)->first();
+        if(!$OctedIdExists){
+            return $ocktedGamingId;
+        }else{
+            return $this->generateOcktedGamingIdForTeacher();
+        }
+    }
+
     //Accepting Score From Games
     public function acceptScore(Request $request)
     {
@@ -505,7 +559,7 @@ class OcktedGamingController extends Controller
             $decrypted_token = $this->decryptToken($encrypt_token, $secretKey);         //decrypt token decryptToken()
             Log::info("Decrypt",['data'=>$decrypted_token]);
 
-            $userIDExists = OcktedUserModel::where('game_token', $decrypted_token)->first();
+            $userIDExists = OcktedStudentModel::where('game_token', $decrypted_token)->first();
             Log::info("User Exists",["return true if exists:" => $userIDExists->user_id]);
 
             if($userIDExists){
@@ -540,7 +594,7 @@ class OcktedGamingController extends Controller
             Log::info("User ID",['data:' => $userData]);
 
 
-            $score = OcktedUserModel::select('ockted_users.user_id','ockted_users.username','ockted_users.profile_picture', OcktedScoreModel::raw('SUM(ockted_score.score) as total_score'))
+            $score = OcktedStudentModel::select('ockted_users.user_id','ockted_users.username','ockted_users.profile_picture', OcktedScoreModel::raw('SUM(ockted_score.score) as total_score'))
             ->join('ockted_score','ockted_users.user_id', '=', 'ockted_score.user_id')
             ->groupBy('ockted_users.user_id', 'ockted_users.profile_picture', 'ockted_users.username')
             ->orderBy('total_score', 'desc')
@@ -563,7 +617,7 @@ class OcktedGamingController extends Controller
         $user = session()->get('User Data');
         Log::info("User in Session",['user'=>$user]);
 
-        // $history = OcktedUserModel::where('user_id',$user)->select('ockted_users.')
+        // $history = OcktedStudentModel::where('user_id',$user)->select('ockted_users.')
 
         return view('Main-Pages.history');
     }
@@ -578,7 +632,7 @@ class OcktedGamingController extends Controller
             $decrypted_token = $this->decryptData($token, $secretKey);
             Log::info("Decrypt",['token'=>$decrypted_token]);
 
-            $user = OcktedUserModel::where('game_token', $decrypted_token)->first();
+            $user = OcktedStudentModel::where('game_token', $decrypted_token)->first();
             Log::info("Request User Data",['data'=>$user]);
 
             $userToken = $user->game_token;

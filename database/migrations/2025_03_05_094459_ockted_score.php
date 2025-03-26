@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('ockted_score', function (Blueprint $table) {
             $table->id('score_id');
-            $table->string('user_id');
-            $table->string('game_title');
+            $table->morphs('ocktedgaming'); // Creates ockted_id and ockted_type
+            $table->string('game_code');
             $table->integer('score');
-            $table->foreign('user_id')->references('user_id')->on('ockted_users')->onDelete('cascade');
             $table->timestamps();
         });
     }

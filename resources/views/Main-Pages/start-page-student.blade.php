@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let token = "{{session('User Data')}}";
             let csrf = "{{csrf_token()}}";
 
-            let response = await fetch(" {{route('create-ockted-user')}} ", {
+            let response = await fetch(" {{route('create-ockted-student')}} ", {
                 method: 'POST',
                 headers:{
                     'Authorization': "Bearer " + token,

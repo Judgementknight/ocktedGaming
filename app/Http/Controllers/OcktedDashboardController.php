@@ -10,7 +10,7 @@ use App\Models\AdminModel;
 use Flasher\Prime\FlasherInterface;
 use Illuminate\Support\Facades\Http;
 use App\Models\OcktedGameModel;
-use App\Models\OcktedUserModel;
+use App\Models\OcktedStudentModel;
 use Illuminate\Support\Facades\DB;
 
 
@@ -82,7 +82,7 @@ class OcktedDashboardController extends Controller
                 $user->update(['remember_token' => $token]);
                 session()->put('remember_token', $token); // Store remember_token in the session as well
             }
-            
+
             Log::info('Session data:', session()->all());
 
             session()->flash('welcome_toast', true);
@@ -469,7 +469,7 @@ class OcktedDashboardController extends Controller
 
 
             // Find player by game_token
-            $player = OcktedUserModel::where('game_token', $validatedData['game_token'])->first();
+            $player = OcktedStudentModel::where('game_token', $validatedData['game_token'])->first();
 
             if (!$player) {
                 return response()->json(['message' => 'Player not found'], 404);
@@ -506,7 +506,7 @@ class OcktedDashboardController extends Controller
             info("ITS HITITNG");
             $token = $request->input();
 
-            $player = OcktedUserModel::where('game_token', $token)->first();
+            $player = OcktedStudentModel::where('game_token', $token)->first();
 
             $player->delete();
             info("PLAYER DELETED");

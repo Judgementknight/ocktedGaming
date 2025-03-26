@@ -11,13 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('ockted_users', function (Blueprint $table) {
+      Schema::create('ockted_students', function (Blueprint $table) {
             $table->id(); // Automatically creates an auto-incrementing 'id'
-            $table->string('user_id')->unique(); // This could be a UUID or string identifier
-            $table->string('username');
+            $table->string('student_id')->unique(); // This could be a UUID or string identifier
+            $table->string('ocktedgaming_id')->unique();
+            $table->string('student_name');
+            $table->string('ocktedgaming_student_username')->nullable();
             $table->string('school_code');
+            $table->string('student_status')->nullable();
             $table->string('profile_picture')->nullable();
+            $table->string('rank')->nullable();
             $table->string('game_token')->nullable()->unique();
+            $table->dateTime('last_active_at')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +32,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ockted_users');
+        Schema::dropIfExists('ockted_students');
     }
+
 };

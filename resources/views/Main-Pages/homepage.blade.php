@@ -5,8 +5,8 @@
 @section('content')
 <body class="main">
     <x-sidemenu/>
-    <x-profile-modal :picture="$combinedData['User Data']['user']['profile_picture'] ?? null" :total="$combinedData['Total Score'] ?? null" :rank="$combinedData['User Data']['user']['rank']" />
-        <x-navbar class="xl:px-10" :name="$combinedData['User Data']['user']['ockted_username'] ?? null" :picture="$combinedData['User Data']['user']['profile_picture'] ?? null"/>
+    <x-profile-modal :picture="$combinedData['Student Data']['student']['profile_picture'] ?? null" :total="$combinedData['Total Score'] ?? null" :rank="$combinedData['Student Data']['student']['rank']" />
+        <x-navbar class="xl:px-10" :name="$combinedData['Student Data']['student']['ocktedgaming_student_username'] ?? null" :picture="$combinedData['Student Data']['student']['profile_picture'] ?? null"/>
         <div class="absolute top-0 left-0 -z-10 w-full h-full ">
             <img class="w-full h-full" src="{{asset('pfp/bg4.png')}}">
         </div>

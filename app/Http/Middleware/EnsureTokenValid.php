@@ -13,11 +13,11 @@ class EnsureTokenValid
 {
     public function handle(Request $request, Closure $next): Response
     {
-        Log::info('ENSURE TOKEN VALID is trigerring');
+        // Log::info('ENSURE TOKEN VALID is trigerring');
         // $token = session('admin_token');
         $token = session()->get('admin_token');
 
-        Log::info('ENSURE TOKEN VALID ttoken', ['token' => $token]);
+        // Log::info('ENSURE TOKEN VALID ttoken', ['token' => $token]);
 
 
         if (!$token) {

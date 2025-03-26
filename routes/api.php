@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\OcktedGamingController;
 use App\Http\Controllers\FetchGameController;
 use App\Http\Controllers\OcktedDashboardController;
+use App\Http\Controllers\OcktedTeacherController;
 
 
 //Middleware
@@ -24,20 +25,29 @@ use App\Http\Middleware\RememberAdminToken;
 
 
 // OCKTED GAMING
-Route::middleware([StartSession::class, UpdateLastActive::class])->group(function () {
+Route::middleware([StartSession::class])->group(function () {
 
     //GET REQUEST
-    Route::get('/welcome', [OcktedGamingController::class,'displayWelcomePage'])->name('welcome');
-    Route::middleware([CheckNewUserOrOld::class])->get('/ocktedGaming',[OcktedGamingController::class,'ocktedHomepage'])->name('ockted');
-    Route::middleware([CheckNewUserOrOld::class])->get('/leaderboard',[OcktedGamingController::class,'leaderboard'])->name('leaderboard');
-    Route::middleware([CheckNewUserOrOld::class])->get('/history',[OcktedGamingController::class,'history'])->name('history');
+    Route::middleware([UpdateLastActive::class])->get('/welcome', [OcktedGamingController::class,'displayWelcomePage'])->name('welcome');
+    Route::get('/ocktedGaming',[OcktedGamingController::class,'ocktedHomepage'])->name('ockted');
+    Route::get('/leaderboard',[OcktedGamingController::class,'leaderboard'])->name('leaderboard');
+    Route::get('/history',[OcktedGamingController::class,'history'])->name('history');
     Route::get('/get-user',[OcktedGamingController::class,'innit']);
 
+    Route::get('/gameroom-details/{gameroom_code}', [OcktedTeacherController::class, 'gameroomDetails'])->name('gameroom-details');
+    Route::get('/join-room/{gameroom_code}',[OcktedTeacherController::class,'joinRoomForm'])->name('join-form');
+
     //POST REQUEST
-    Route::post('/welcome/create-user',[OcktedGamingController::class, 'createOcktedUserName'])->name('create-ockted-user');
-    Route::post('/requestaccess',[OcktedGamingController::class,'requestAccess'])->name('request_game');
+    Route::post('/create-student',[OcktedGamingController::class, 'createOcktedStudent'])->name('create-ockted-student');
+    Route::post('/create-teacher',[OcktedGamingController::class, 'createOcktedTeacher'])->name('create-ockted-teacher');
+
+    Route::post('/create-gameroom',[OcktedTeacherController::class, 'createOcktedGameRoom'])->name('create-gameroom');
+    Route::post('/join-room',[OcktedTeacherController::class,'joinGameRoom'])->name('join-room');
+
+
+    // Route::post('/requestaccess',[OcktedGamingController::class,'requestAccess'])->name('request_game');
     Route::post('/submit-score',[OcktedGamingController::class,'acceptScore']);
-    Route::post('/request-user-data',[OcktedGamingController::class,'isTokenValid']);
+    // Route::post('/request-user-data',[OcktedGamingController::class,'isTokenValid']);
 
 });
 

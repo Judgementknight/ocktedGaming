@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('game_banner')->nullable();
             $table->string('game_code')->unique();
             $table->string('game_url');
+            $table->string('game_status')->nullable();
             $table->string('game_source')->nullable();
             $table->timestamps();
         });

@@ -20,7 +20,7 @@ class CheckNewUserOrOld
         $user = session()->get('User Data');
 
         // Log the session data for debugging (you can remove this later in production)
-        Log::info('Session Data: has gametoken', ['user' => $user]);
+        // Log::info('Session Data: has gametoken', ['user' => $user]);
 
         // Check if the session data exists and if the game_token exists
         if (!$user || !isset($user->game_token) || !$user->game_token) {

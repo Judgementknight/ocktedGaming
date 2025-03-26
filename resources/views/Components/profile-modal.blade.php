@@ -2,7 +2,7 @@
     <div class="w-[700px] h-[400px] glass border-2 px-4 py-4 font1 text-white relative">
         <div class="w-full h-[50px] flex items-center justify-between">
             <div class="">
-                <h1 class="text-4xl">KING CRUSADE Profile</h1>
+                <h1 class="text-4xl">Profile</h1>
             </div>
             <div class="h-[40px] w-[40px] rounded-[5px] relative">
                 <img class="w-full h-full rounded-[5px] object-cover" src="{{$picture}}"/>
