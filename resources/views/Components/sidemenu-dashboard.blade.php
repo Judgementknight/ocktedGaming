@@ -1,4 +1,4 @@
-<div id="sidemenu" class="fixed h-full w-[300px] lg:w-[480px] hidden lg:block border-[1px] border-black/50 top-0 z-[999] right-[-100%] bgwhite1 round overflow-hidden transition-all duration-500 ease-linear">
+<div id="sidemenu" class="fixed bg-white h-full w-[300px] lg:w-[480px] hidden lg:block border-[1px] border-black/50 top-0 z-[999] right-[-100%] round overflow-hidden transition-all duration-500 ease-linear">
     <div class="w-full h-[70px] flex items-center px-2 justify-between border-b-[1px] border-black/50 py-2">
         <h1 class="anton text-3xl">ADD GAME</h1>
         <div class="w-[100px] h-[40px] animate hover:bg-black hover:text-white round active:scale-90">
@@ -35,8 +35,6 @@
                 <div class="w-full h-[50px] mt-3  px-5 kode flex justify-center items-center">
                     <button type="submit" class="w-[50%] h-full bg-green-500 border-[1px] border-black text-white">SUBMIT</button>
                 </div>
-
-
             </div>
         </form>
 </div>

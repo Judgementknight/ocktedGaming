@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\OcktedScoreModel;
+use App\Models\ClassroomModel;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 
@@ -17,9 +18,7 @@ class OcktedStudentModel extends Model
 
     protected $fillable = [
         'student_id',
-        'ocktedgaming_id',
         'student_name',
-        'ocktedgaming_student_username',
         'school_code',
         'student_status',
         'profile_picture',
@@ -28,20 +27,20 @@ class OcktedStudentModel extends Model
         'last_active_at'
     ];
 
-    public function scores(): MorphMany
+    public function scores()
     {
-        return $this->morphMany(OcktedScoreModel::class, 'ocktedgaming');
+        return $this->hasMany(OcktedScoreModel::class, 'student_id','student_id');
     }
 
-    public function gamerooms()
+    public function classrooms()
     {
         return $this->belongsToMany(
-            OcktedGameroomModel::class,
-            'gameroom_assignment',
+            ClassroomModel::class,
+            'classroom_mapping',
             'student_id',         // This pivot column references the student
-            'gameroom_code',      // This pivot column references the gameroom
+            'classroom_code',      // This pivot column references the gameroom
             'student_id',         // Local key on the student model
-            'gameroom_code'       // Local key on the gameroom model
+            'classroom_code'       // Local key on the gameroom model
         );
     }
 }

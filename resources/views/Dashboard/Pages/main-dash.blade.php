@@ -4,7 +4,7 @@
 
 @section('content')
 
-<body class="h-auto w-full bg-[#E8F0F1]">
+<body class="h-auto w-full bg-white">
     <x-toast/>
         <x-dash-navbar />
         <div class="main2 px-[20px] xl:px-[88px] pt-4 flex flex-col">
@@ -28,7 +28,7 @@
                         <div class="w-full h-[300px] round bg-black/50 absolute transition-all duration-200 ease-in translate-x-2 translate-y-1 -z-10">
 
                         </div>
-                        <div class="w-full h-[300px] round bg-[#E8F0F1] p-3 relative">
+                        <div class="w-full h-[300px] round bg-white p-3 relative">
                             <div class="flex items-center ">
 
                                 <div class="w-full ">
@@ -60,7 +60,7 @@
                         <div class="w-full h-full round bg-black/50 absolute translate-x-2 translate-y-1 -z-10">
 
                         </div>
-                        <div class="w-full h-full round bg-[#E8F0F1] p-3 relative">
+                        <div class="w-full h-full round bg-white p-3 relative">
                             <div class="flex items-center flex-col w-full h-full ">
                                 <div class="w-full h-[50px] absolute left-5">
                                     <h1 class="anton text-black/80 text-3xl  lg:text-5xl"> STATS</h1>

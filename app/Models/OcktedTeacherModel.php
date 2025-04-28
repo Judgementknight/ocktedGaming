@@ -10,24 +10,27 @@ class OcktedTeacherModel extends Model
 {
     protected $table = 'ockted_teachers';
 
-    protected $primaryKey = 'teacher_id';
+    protected $primaryKey = 'id';
 
     public $timestamps = true;
 
     protected $fillable = [
         'teacher_id',
-        'ocktedgaming_id',
         'teacher_name',
-        'ocktedgaming_teacher_username',
         'school_code',
         'game_token',
         'profile_picture',
     ];
 
 
-    public function scores(): MorphMany
+    // public function scores(): MorphMany
+    // {
+    //     return $this->morphMany(OcktedScoreModel::class, 'ocktedgaming');
+    // }
+
+    public function classrooms()
     {
-        return $this->morphMany(OcktedScoreModel::class, 'ocktedgaming');
+        return $this->hasMany(ClassroomModel::class, 'teacher_id', 'teacher_id');
     }
 
     public function gamerooms()

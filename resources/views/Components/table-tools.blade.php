@@ -6,7 +6,7 @@
             Table Tools
         </div>
         <div class="w-[60px] h-[50px] rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('player')}}">
+            <form method="GET" action="{{route('student-query')}}">
                 <input type="hidden" name="sort_by_name" value="name">
                 <input type="hidden" name="sort_order" value="{{ request('sort_order') === 'asc' ? 'desc' : 'asc' }}">
                 <button>
@@ -18,7 +18,7 @@
             </div>
         </div>
         <div class="w-[60px] h-[50px]  rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('player')}}">
+            <form method="GET" action="{{route('student-query')}}">
                 <input type="hidden" name="status" value="{{request('status') === 'active' ? 'inactive' : 'active'}}">
                 <button>
                     <img class="h-full w-full active:scale-90 animate" src="{{asset('dashboard/icons/active.png')}}">
@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="w-[60px] h-[50px]  rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form action="{{route('player')}}" method="GET">
+            <form action="{{route('student-query')}}" method="GET">
                 <input type="hidden" name="score" value="{{request('score') === 'high' ? 'low' : 'high'}}">
                 <button>
                     <img class="h-full w-full active:scale-90 animate" src="{{asset('dashboard/icons/score.png')}}">
@@ -40,7 +40,7 @@
             </div>
         </div>
         <div class="w-[60px] h-[50px]  rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('player')}}">
+            <form method="GET" action="{{route('student-query')}}">
                 <input type="hidden" name="games" value="{{request('games') === 'top' ? 'bottom' : 'top'}}">
                 <button>
                     <img class="h-full w-full active:scale-90 animate" src="{{asset('dashboard/icons/sorting.png')}}">
@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="w-[60px] h-[50px]  rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('player')}}">
+            <form method="GET" action="{{route('student-query')}}">
                 <input type="hidden" name="games" value="{{request('games') === 'top' ? 'bottom' : 'top'}}">
                 <button>
                     <img class="h-full w-full active:scale-90 animate" src="{{asset('dashboard/icons/reset.png')}}">

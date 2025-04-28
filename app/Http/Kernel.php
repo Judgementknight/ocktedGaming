@@ -15,7 +15,16 @@ class Kernel extends HttpKernel
 {
     protected $middlewareGroups = [
         'web' => [
-            // Other middleware...
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,  //Ensure Sanctum handles frontend requests
+            \Illuminate\Session\Middleware\StartSession::class, // enable session to work on api.php routes
+            'throttle:api',         //Throttle:Limits the number of requests (for rate limiting).
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            EnsureTokenValid::class,
+            EnsureApiToken::class,
+            UpdateLastActive::class,
+            CheckNewOrOld::class,
+            CheckLastVisitedPage::class,
+            RememberAdminToken::class,
         ],
 
         'api' => [

@@ -27,4 +27,9 @@ class OcktedGameModel extends Model
     {
         return $this->hasMany(OcktedScoreModel::class, 'game_code', 'game_code');
     }
+
+    // public function gamerooms()
+    // {
+    //     return $this->hasMany(GameroomModel::class, 'game_code', 'game_code');
+    // }
 }

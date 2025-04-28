@@ -1,5 +1,5 @@
 <div class=" w-full lg:w-[600px] h-[50px] fixed bottom-2 left-[50%] translate-x-[-50%] flex items-center justify-center z-50">
-    <div class="bg-[#D9D9D9] w-[500px] h-[50px] round px-3 flex items-center justify-between ">
+    <div class="bg-gray-100 w-[500px] h-[50px] round px-3 flex items-center justify-between ">
         <div class="size-12 relative hover:scale-105 transition-all group duration-200 ease-in hover:cursor-pointer">
             <div class="absolute bg-[#c99ea7] w-[50px] h-[30px] top-[-20px] round flex justify-center items-center opacity-0 group-hover:opacity-100 animate">
                 <p class="kode">Home</p>
@@ -20,9 +20,9 @@
         </div>
         <div class="size-12 relative hover:scale-105 transition-all group duration-200 ease-in hover:cursor-pointer">
             <div class="absolute bg-[#2ec4b6] w-[90px] h-[30px] top-[-20px] round flex justify-center items-center opacity-0 group-hover:opacity-100 animate">
-                <p class="kode">Players</p>
+                <p class="kode">Students</p>
             </div>
-            <a href="{{route('player')}}"><img class="h-full w-full " src="{{asset('dashboard/icons/players.png')}}"></a>
+            <a href="{{route('student-details')}}"><img class="h-full w-full " src="{{asset('dashboard/icons/players.png')}}"></a>
         </div>
         <div class="size-12 relative hover:scale-105 transition-all group duration-200 ease-in hover:cursor-pointer">
             <div class="absolute bg-[#72caaf] w-auto h-auto p-1 top-[-20px] round flex justify-center items-center opacity-0 group-hover:opacity-100 animate">

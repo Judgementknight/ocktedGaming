@@ -1,47 +1,29 @@
-@extends('Main-Pages.main-layout')
+@extends('TeacherDashboard.teacher-layout')
 
 @section('OCKTED GAMING')  <!-- Overriding the title with dynamic game title -->
 
 @section('content')
 <body id="body" class="overflow-hidden w-screen h-screen filter contrast-0">
-    <div class="absolute top-0 left-0 -z-10 w-full h-full ">
-        <img class="w-full h-full" src="{{asset('pfp/bg4.png')}}">
+    <x-student-welcome-navbar/>
+    <div class="w-full h-full fixed top-0 left-0 -z-30">
+        <img class="w-full h-full object-cover" src="{{asset('Teacher/bg2.jpg')}}">
     </div>
-    <div id="loader" class="w-full h-full absolute glass left-0 top-0 flex items-center justify-center ">
-        <div class="">
-            <h1 id="text" class="font1 text-4xl lg:text-[10rem] text-white opacity-0">
-              OCKTED GAMING
-            </h1>
+    <div class="w-full h-screen font1 flex flex-col items-center justify-center">
+        <div class="flex md:flex-row flex-col items-center">
+            <h1 class="text-6xl text-center md:text-7xl font-bold">Welcome to <span class="text-[#2A6DF4] font-extrabold">OCKTED GAMING</span></h1>
+            <img class="size-16" src="{{asset('Teacher/icons/peace.gif')}}">
         </div>
-    </div>
-    <div id="main" class="w-[400px] h-[400px] glass absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
-        <div class="w-full h-[100px] flex items-center justify-center">
-            <h1 class="font1 text-4xl text-white">Welcome To Ockted Gaming</h1>
-        </div>
-        <form class="add-form-group" enctype="multipart/form-data">
-            <div  class="w-full h-[300px] flex flex-col gap-5">
-                <div class="w-full h-[150px] flex flex-col gap-2 items-center justify-center">
-                    <label for="imageInput" class="w-[100px] h-[100px] glass p-2 relative cursor-pointer">
-                        <!-- Hidden file input -->
-                        <input type="file" name="profile_picture" accept="image/*" id="imageInput" class="hidden active:scale-75 transition-all duration-100 ease-linear">
-                        <!-- Icon overlay -->
-                        <img id="add-logo" class="absolute size-6 bottom-9 right-9" src="{{ asset('pfp/add.png') }}" alt="Add Icon">
-                        <img id="imagePreview" name="profile_picture" value="" src="" class="object-cover w-full h-full hidden rounded-[5px]">
-                    </label>
-                    <p class=" text-white text-sm font1 bottom-1 left-4">Profile Picture</p>
-                </div>
-                <div class="w-full h-[100px] justify-center items-center flex flex-col ">
-                    <div class="">
-                        <input class="font1 text-white glass px-2 w-[250px] h-[40px] outline-none" placeholder="Enter Username...." type="text" name="ockted_username">
-                    </div>
-                    <div class="w-full h-[50px] flex items-center justify-center mt-3">
-                        <button type="submit" class="px-3 py-2 font1 text-white glass active:scale-90 animate" type="submit" name="username">Submit</button>
-                    </div>
+        <a href="{{route('create-ockted-student')}}">
+            <div class="mt-10 w-[200px] h-[50px] relative hover:cursor-pointer">
+                <div class="w-full h-full bg-zinc-800 absolute translate-x-1 translate-y-2 rounded-sm"></div>
+                <div class="w-full h-full bg-[#2A6DF4] absolute flex items-center justify-evenly px-2 rounded-sm">
+                    <button class=" text-white">GET STARTED</button>
+                    <img src="{{asset('Teacher/icons/arrow.png')}}" class="size-10">
                 </div>
             </div>
-        </form>
+        </a>
+
     </div>
-    {{-- <h1>HELLO THIS IS START PAGE</h1> --}}
 </body>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -112,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let token = "{{session('User Data')}}";
             let csrf = "{{csrf_token()}}";
 
-            let response = await fetch(" {{route('create-ockted-student')}} ", {
+            let response = await fetch(" {{route('create-ockted-teacher')}} ", {
                 method: 'POST',
                 headers:{
                     'Authorization': "Bearer " + token,

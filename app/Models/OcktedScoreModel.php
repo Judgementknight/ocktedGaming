@@ -3,23 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\OcktedStudentModel;
 
 class OcktedScoreModel extends Model
 {
-    protected $table = 'ockted_score';
     protected $primaryKey = 'score_id';
+
+    protected $table = 'ockted_score';
+
     public $timestamps = true;
 
     protected $fillable = [
-        'ocktedgaming_id', // This will be automatically handled by morphs
-        'ockted_type', // This will store either 'App\Models\OcktedStudentModel' or 'App\Models\OcktedTeacherModel'
+        'student_id',
         'game_code',
         'score',
     ];
 
-    public function ocktedgaming(): MorphTo
+    public function student()
     {
-        return $this->morphTo();
+        return $this->belongsTo(OcktedStudentModel::class, 'student_id', 'student_id');
     }
 }

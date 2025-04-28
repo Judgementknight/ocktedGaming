@@ -4,13 +4,13 @@
 
 @section('content')
 
-<body class="h-auto w-full bg-[#E8F0F1] overflow-x-hidden relative">
+<body class="h-auto w-full bg-white overflow-x-hidden relative">
         <x-dash-navbar />
         <x-sidemenu-dashboard />
         <x-toast/>
 
         <button id="button">
-            <div class="absolute hidden bggray lg:flex items-center gap-5 bottom-0 border-[1px] border-black group hover:bg-black round w-[200px] h-[50px] px-2 z-50 hover:cursor-pointer">
+            <div class="absolute hidden bg-gray-100 lg:flex items-center gap-5 bottom-0 border-[1px] border-black group hover:bg-black round w-[200px] h-[50px] px-2 z-50 hover:cursor-pointer">
                 <div class="size-11 group-hover:scale-125 animate">
                     <img class="w-full h-full group-hover:scale-125 animate" src="{{asset('dashboard/icons/add2.png')}}">
                 </div>
@@ -27,7 +27,7 @@
         <div class="h-auto w-full flex flex-col lg:flex-row px-[14px] lg:px-[28px] gap-[20px] lg:gap-[2%]">
             <div class="w-full lg:w-[68%] h-auto lg:h-[80vh] flex flex-col gap-[20px] lg:gap-[2%] ">
                 <div class="h-[70vh] lg:h-[95%] w-full border-[1px] border-black/50 round relative">
-                    <div class="w-full h-full bgwhite1 absolute round z-20">
+                    <div class="w-full h-full bg-white absolute round z-20">
                         <div class="w-full h-[50px] flex items-center px-3 border-b-[1px] border-black/50">
                             <h1 class="anton text-2xl">GAMES DATA</h1>
                         </div>
@@ -151,7 +151,7 @@
                 </div>
 
                 <div class="h-[80vh] lg:h-[40%] w-full round border-[1px] border-black/50 relative block lg:hidden">
-                    <div class="w-full h-full bgwhite1 absolute round z-20">
+                    <div class="w-full h-full bg-white absolute round z-20">
                         {{-- header --}}
                         <div class="w-full h-[50px] flex items-center px-3 border-b-[1px] border-black/50">
                             <h1 class="anton text-2xl">ADD GAMES</h1>
@@ -207,7 +207,7 @@
 
             </div>
             <div class="w-full lg:w-[30%] h-[80vh] relative border-[1px] border-black/50 round">
-                <div class="w-full h-full bgwhite1 absolute round z-20">
+                <div class="w-full h-full bg-white absolute round z-20">
                     <div class="w-full flex items-center px-3 h-[100px] border-b-[1px] border-black/50">
                         <h1 class="anton text-4xl">RECENT ADDED GAMES</h1>
                     </div>
@@ -215,8 +215,8 @@
                         {{-- CARD GAME --}}
                         @if (isset($gameData['Recent Games']) && count($gameData['Recent Games']) > 0)
                             @foreach ($gameData['Recent Games'] as $key=>$game)
-                            <div class="w-full flex gap-[3%] h-[150px] bggray p-2 border-[1px] border-black/50 round">
-                                <div class="w-[30%] h-full bg-red-950 round">
+                            <div class="w-full flex gap-[3%] h-[150px] bg-gray-100 p-2 border-[1px] border-black/50 round">
+                                <div class="w-[30%] h-full round">
                                     <img class="w-full h-full object-cover round" src="{{$game['game_banner']}}">
 
                                 </div>

@@ -13,6 +13,10 @@ class EnsureTokenValid
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->is('dashboard/login')) {
+            return $next($request);
+        }
+
         // Log::info('ENSURE TOKEN VALID is trigerring');
         // $token = session('admin_token');
         $token = session()->get('admin_token');
@@ -21,14 +25,14 @@ class EnsureTokenValid
 
 
         if (!$token) {
-            return redirect('api/dashboard/login')->with('error', 'Unauthorized access.');
+            return redirect()->route('login')->with('error', 'jadlskjklUnauthorized access.');
         }
 
         // Retrieve the sole admin record.
         $admin = AdminModel::first();
 
         if (!$admin || !Hash::check($token, $admin->api_token)) {
-            return redirect('api/dashboard/login')->with('error', 'Unauthorized access.');
+            return redirect()->route('login')->with('error', 'logindaslUnauthorized access.');
         }
 
         // Optionally attach the admin record to the request.

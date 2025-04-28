@@ -22,10 +22,18 @@ class OcktedDashboardController extends Controller
         return view('Dashboard.Pages.dash-login');
     }
 
+    public function renderDashboard()
+    {
+        $token = session()->get('admin_token');
+        Log::info('session',['admin Token' => $token]);
+        return view('Dashboard.Pages2.main-dash');
+    }
+
     public function adminRegister(Request $request)
     {
         try{
             Log::info("Its hititng");
+
             $field = $request->validate([
                 'username' => 'required|string',
                 'password' => 'required|string',
@@ -51,11 +59,16 @@ class OcktedDashboardController extends Controller
     public function adminLogin(Request $request, FlasherInterface $flasher)
     {
         try{
+            info('hitting register');
+
             $field = $request->validate([
                 'username' => 'required|string|exists:admin,username',
                 'password' => 'required|string',
 
             ]);
+
+            info('pass validation');
+
 
             $remember = $request->filled('remember'); // true if checkbox is checked
 
@@ -74,22 +87,24 @@ class OcktedDashboardController extends Controller
 
             $token = Str::random(60);
             $hashToken = Hash::make($token);
+            Log::info("Token",['data'=> $token]);
+            Log::info("Hash Token",['data'=> $hashToken]);
+
             $user->update(['api_token'=> $hashToken]);
 
-            session()->put('admin_token',$token);
+            session()->put('admin_token',$hashToken);
 
             if ($remember) {
                 $user->update(['remember_token' => $token]);
                 session()->put('remember_token', $token); // Store remember_token in the session as well
             }
 
-            Log::info('Session data:', session()->all());
 
             session()->flash('welcome_toast', true);
 
-            Log::info("sessionkamsdl", session()->all());
 
             return redirect()->route('dashboard');
+            // return view('Dashboard.Pages.main-dash');
         }catch(Exception $e){
             Log::error("Error Login",['error'=>$e->getMessage()]);
         }
@@ -97,8 +112,8 @@ class OcktedDashboardController extends Controller
 
     public function adminLogout(Request $request,  FlasherInterface $flasher)
     {
-        $admin = $request->attributes->get('admin');  //request data which is being stored from middleware
-
+        $admin = AdminModel::first();  //request data which is being stored from middleware
+        Log::info('admin', ['data' => $admin]);
         if(!$admin){
             $admin = AdminModel::first();  //backup admin data fetch
         }
@@ -107,100 +122,114 @@ class OcktedDashboardController extends Controller
         $admin->update(['remember_token' => null]);
 
 
-        session()->forget('admin_token');
+        session()->flush();
+        Log::info('session after logout' ,['data' => session()->all()]);
 
         session()->flash('logout_toast', true); // This will be cleared after the next request
         return redirect()->route('login');
     }
 
-
-
     //DASHBOARD CONTROLLERS
-    public function playerDetails(Request $request)
+    public function studentDetails(Request $request)
     {
-        $playersQuery = DB::table('ockted_users')
-            ->leftJoin('ockted_score', 'ockted_users.user_id', '=', 'ockted_score.user_id')
+        $students = DB::table('ockted_students')
+            ->leftJoin('ockted_score', 'ockted_students.student_id', '=', 'ockted_score.student_id')
             ->select(
-                'ockted_users.*',
+                'ockted_students.*',
                 DB::raw('COUNT(ockted_score.game_code) as game_count'),
                 DB::raw('SUM(ockted_score.score) as total_score')
             )
             ->groupBy(
-                'ockted_users.id',
-                'ockted_users.ockted_username',
-                'ockted_users.user_id',
-                'ockted_users.username',
-                'ockted_users.school_code',
-                'ockted_users.profile_picture',
-                'ockted_users.game_token',
-                'ockted_users.user_status',
-                'ockted_users.rank',
-                'ockted_users.created_at',
-                'ockted_users.updated_at',
-                'ockted_users.last_active_at'
+                'ockted_students.id',
+                'ockted_students.student_id',
+                'ockted_students.student_name',
+                'ockted_students.school_code',
+                'ockted_students.student_status',
+                'ockted_students.profile_picture',
+                'ockted_students.game_token',
+                'ockted_students.rank',
+                'ockted_students.created_at',
+                'ockted_students.updated_at',
+                'ockted_students.last_active_at'
+            )->get();
+
+
+
+        // return response()->json([
+        //     'students' => $students
+        // ]);
+        return view('Dashboard.Pages2.student', compact('students'));
+    }
+
+    public function studentQuery(Request $request)
+    {
+        info('hitting studentQuery');
+
+        $query = DB::table('ockted_students')
+            ->leftJoin('ockted_score', 'ockted_students.student_id', '=', 'ockted_score.student_id')
+            ->select(
+                'ockted_students.*',
+                DB::raw('COUNT(ockted_score.game_code) as game_count'),
+                DB::raw('SUM(ockted_score.score) as total_score')
+            )
+            ->groupBy(
+                'ockted_students.id',
+                'ockted_students.student_id',
+                'ockted_students.student_name',
+                'ockted_students.school_code',
+                'ockted_students.student_status',
+                'ockted_students.profile_picture',
+                'ockted_students.game_token',
+                'ockted_students.rank',
+                'ockted_students.created_at',
+                'ockted_students.updated_at',
+                'ockted_students.last_active_at'
             );
 
-        // Fetch all players (without pagination yet)
-        $playersCollection = collect($playersQuery->get());
-        // 🔍 Apply Search Filter
-        if ($request->has('search')) {
-            $search = $request->search;
-            $playersCollection = $playersCollection->filter(function ($player) use ($search) {
-                return stripos($player->username, $search) !== false;
-            });
+        $searchQuery = $request->input('query');
+        $sortNameQuery = $request->input('sortByName');
+        $sortScore = $request->input('sortByScore');
+        $sortGame = $request->input('sortByGame');
+
+        if ($searchQuery) {
+            $query->where('ockted_students.student_name', 'like', '%' . $searchQuery . '%');
         }
 
-        // 🔄 Apply Sorting by Name
-        if ($request->input('sort_by_name') === 'name') {
-            $order = $request->input('sort_order', 'asc');
-            $playersCollection = $order === 'asc'
-                ? $playersCollection->sortBy('username')
-                : $playersCollection->sortByDesc('username');
+        if ($sortNameQuery) {
+            $query->orderBy('ockted_students.student_name', $sortNameQuery);
         }
 
-        // 🟢 Apply Status Filter
-        if ($status = $request->input('status')) {
-            $playersCollection = $playersCollection->filter(function ($player) use ($status) {
-                return strcasecmp($player->user_status, $status) === 0;
-            });
+        if ($sortScore) {
+            info('hitting sort score');
+            $query->orderBy('total_score', $sortScore);
         }
 
-        // 🔥 Apply Sorting by Score
-        if ($request->input('score')) {
-            $playersCollection = $request->input('score') === 'high'
-                ? $playersCollection->sortByDesc('total_score')
-                : $playersCollection->sortBy('total_score');
+        if ($sortGame) {
+            $query->orderBy('game_count', $sortGame);
         }
 
-        // 🎮 Apply Sorting by Games Played
-        if ($request->input('games')) {
-            $playersCollection = $request->input('games') === 'top'
-                ? $playersCollection->sortByDesc('game_count')
-                : $playersCollection->sortBy('game_count');
-        }
+        $students = $query->paginate(10);
 
-        // 📄 Apply Pagination AFTER filtering & sorting
-        $perPage = 10;
-        $currentPage = $request->input('page', 1);
-        $currentItems = $playersCollection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $students->getCollection()->transform(function ($student) {
+            $student->profile_picture = $student->profile_picture
+                ? asset($student->profile_picture)
+                : null;
+            return $student;
+        });
 
-        $players = new \Illuminate\Pagination\LengthAwarePaginator(
-            $currentItems,
-            $playersCollection->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        // return response()->json([
+        //     'data' => $students
+        // ]);
 
-        return view('Dashboard.Pages.player-dash', compact('players'));
+        return response()->json($students);
     }
 
     public function playerHistory(Request $request)
     {
-        $playersQuery = DB::table('ockted_users')
-        ->join('ockted_score', 'ockted_users.user_id', '=' , 'ockted_score.user_id')
-        ->select('ockted_users.user_id','ockted_users.username','ockted_score.score','ockted_score.game_code','ockted_score.created_at')
-        ->groupBy('ockted_users.user_id','ockted_users.username','ockted_score.score','ockted_score.game_code','ockted_score.created_at');
+        $playersQuery = DB::table('ockted_students')
+        ->join('ockted_score', 'ockted_students.student_id', '=' , 'ockted_score.student_id')
+        ->select('ockted_students.student_id','ockted_students.student_name','ockted_score.score','ockted_score.game_code','ockted_score.created_at')
+        ->groupBy('ockted_students.student_id','ockted_students.student_name','ockted_score.score','ockted_score.game_code','ockted_score.created_at');
 
         $playersCollection = collect($playersQuery->get());
 
@@ -265,7 +294,132 @@ class OcktedDashboardController extends Controller
         return view('Dashboard.Pages.player-history', compact('players'));
     }
 
-    public function acceptExternalGames()
+
+    public function teacherDetails()
+    {
+        $query = DB::table('ockted_teachers')
+        ->leftjoin('classrooms', 'ockted_teachers.teacher_id', '=', 'classrooms.teacher_id')
+        ->leftjoin('gamerooms', 'classrooms.classroom_code','=','gamerooms.classroom_code')
+        ->leftjoin('custom_game_assignments', 'gamerooms.gameroom_code', '=', 'custom_game_assignments.gameroom_code')
+        ->select('ockted_teachers.id',
+                'ockted_teachers.teacher_id',
+                'ockted_teachers.teacher_name',
+                'ockted_teachers.school_code',
+                'ockted_teachers.game_token',
+                'ockted_teachers.profile_picture',
+                'ockted_teachers.created_at',
+                'ockted_teachers.updated_at',
+                DB::raw('COUNT(classrooms.classroom_id) as classroom_count'),
+                DB::raw('COUNT(custom_game_assignments.custom_game_assignment_code) as assignment_count')
+        )->groupBy('ockted_teachers.id',
+                   'ockted_teachers.teacher_id',
+                   'ockted_teachers.teacher_name',
+                   'ockted_teachers.school_code',
+                   'ockted_teachers.game_token',
+                   'ockted_teachers.profile_picture',
+                   'ockted_teachers.created_at',
+                   'ockted_teachers.updated_at',
+        )->get();
+
+        // return response()->json([
+        //     'data' => $query
+        // ]);
+
+        return view('Dashboard.Pages2.teacher',[
+            'teachers' => $query
+        ]);
+    }
+
+    public function teacherQuery(Request $request)
+    {
+        info('hitting teacher query');
+
+        $query = DB::table('ockted_teachers')
+        ->leftjoin('classrooms', 'ockted_teachers.teacher_id', '=', 'classrooms.teacher_id')
+        ->leftjoin('gamerooms', 'classrooms.classroom_code','=','gamerooms.classroom_code')
+        ->leftjoin('custom_game_assignments', 'gamerooms.gameroom_code', '=', 'custom_game_assignments.gameroom_code')
+        ->select('ockted_teachers.id',
+                'ockted_teachers.teacher_id',
+                'ockted_teachers.teacher_name',
+                'ockted_teachers.school_code',
+                'ockted_teachers.game_token',
+                'ockted_teachers.profile_picture',
+                'ockted_teachers.created_at',
+                'ockted_teachers.updated_at',
+                DB::raw('COUNT(classrooms.classroom_id) as classroom_count'),
+                DB::raw('COUNT(custom_game_assignments.custom_game_assignment_code) as assignment_count')
+        )->groupBy('ockted_teachers.id',
+                   'ockted_teachers.teacher_id',
+                   'ockted_teachers.teacher_name',
+                   'ockted_teachers.school_code',
+                   'ockted_teachers.game_token',
+                   'ockted_teachers.profile_picture',
+                   'ockted_teachers.created_at',
+                   'ockted_teachers.updated_at',
+        );
+
+        $searchQuery = $request->input('query');
+        $sortNameQuery = $request->input('sortByName');
+        $sortClassroom = $request->input('sortByClassroom');
+        $sortAssignment = $request->input('sortByAssignment');
+
+        if ($searchQuery) {
+            $query->where('ockted_teachers.teacher_name', 'like', '%' . $searchQuery . '%');
+        }
+
+        if ($sortNameQuery) {
+            $query->orderBy('ockted_teachers.teacher_name', $sortNameQuery);
+        }
+
+        if ($sortClassroom) {
+            info('hitting sort score');
+            $query->orderBy('classroom_count', $sortClassroom);
+        }
+
+        if ($sortAssignment) {
+            $query->orderBy('assignment_count', $sortAssignment);
+        }
+
+        $teachers = $query->paginate(10);
+
+        $teachers->getCollection()->transform(function ($teacher) {
+            $teacher->profile_picture = $teacher->profile_picture
+                ? asset($teacher->profile_picture)
+                : null;
+            return $teacher;
+        });
+
+        return response()->json([
+            'data' => $teachers
+        ]);
+
+        return response()->json($teachers);
+    }
+
+    public function gamesDetails()
+    {
+        $session = session()->get('admin_token');
+
+        Log::info('session', ['data' => $session]);
+        return view('Dashboard.Pages2.games');
+    }
+
+    public function gamesQuery()
+    {
+
+        $gameServers = $this->GameServer();
+
+        $query = OcktedGameModel::paginate(5);
+
+        return response()->json([
+            'data' => $query,
+            'game server' => $gameServers,
+        ]);
+
+    }
+
+
+    public function GameServer()
     {
         $Server1 = [];
         $Server2 = [];
@@ -278,18 +432,19 @@ class OcktedDashboardController extends Controller
             Log::info("Server 1 API failed", ['error' => $e->getMessage()]);
         }
 
-        try{
-            $response2 = Http::timeout(2)->get('http://localhost:8003/api/games');
-            $Server2 = $response2->successful() ? $response2->json() ?? [] : [];
-            Log::info('Game Data 2', ['data:' => $Server2]);
-        }catch(\Exception $e){
-            Log::info("ERROR CONNECTING WITH SERVER 2", ['error' => $e->getMessage()]);
-        }
+        // try{
+        //     $response2 = Http::timeout(2)->get('http://localhost:8003/api/games');
+        //     $Server2 = $response2->successful() ? $response2->json() ?? [] : [];
+        //     Log::info('Game Data 2', ['data:' => $Server2]);
+        // }catch(\Exception $e){
+        //     Log::info("ERROR CONNECTING WITH SERVER 2", ['error' => $e->getMessage()]);
+        // }
 
 
         $game = OcktedGameModel::latest()->take(3)->get();
 
-        $gameData = ['Server 1' => $Server1, 'Server 2' => $Server2, 'Recent Games' => $game];
+        $gameServers = ['Server 1' => $Server1, 'Server 2' => $Server2, 'Recent Games' => $game];
+        return $gameServers;
 
 
         // RENDER ONLY ADDED GAMES??
@@ -307,7 +462,7 @@ class OcktedDashboardController extends Controller
         //     'data' => $gameData,
         // ]);
 
-        return view('Dashboard.Pages.add-games', compact('gameData'));
+        // return view('Dashboard.Pages.add-games', compact('gameData'));
     }
 
     public function receiveGameWithPost(Request $request)
@@ -328,21 +483,28 @@ class OcktedDashboardController extends Controller
 
     public function addGame(Request $request, FlasherInterface $flasher)
     {
-        Log::info("IT HITTING asdasd");
+        info("IT HITTING add Game");
         $title = $request->input('game_title');
-        $code = $request->input('game_code');
         $banner = $request->input('game_banner');
         $url = $request->input('game_url');
         $source = $request->input('game_source');
         $description = $request->input('game_description');
+        $code = $request->input('game_code');
+
+        Log::info("source", ['data' => $source]);
 
         $gameData = ['game_title' => $title, 'game_code' => $code, 'game_banner' => $banner, 'game_url' => $url, 'game_source' => $source, 'game_description' => $description];
+
+        Log::info('game_soruce',['data' => $gameData]);
 
         $game = OcktedGameModel::where('game_code', $code)->first();
 
         if($game){
-            session()->flash('game_already_exists', true);
-            return redirect()->back();
+            // session()->flash('game_already_exists', true);
+            // return redirect()->back();
+            return response()->json([
+                'message' => 'Game Already added'
+            ]);
             Log::info("Game Exists", ['data' => $game]);
 
         }else{
@@ -366,12 +528,13 @@ class OcktedDashboardController extends Controller
             ]);
 
             Log::info("Game Added Successfuly", ['game' => $game]);
-            session()->flash('game_added', true);
-            return redirect()->back();
+            // session()->flash('game_added', true);
+            // return redirect()->back();
 
             return response()->json([
-                'message' => 'game Added Sucessfully',
-            ]);
+                'message' => 'Game added successfully',
+                // 'game' => $newGame
+            ], 201);
         }
     }
 

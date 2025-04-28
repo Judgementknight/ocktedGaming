@@ -12,6 +12,7 @@
 </head>
 <body>
     <!-- Main Content Section -->
+   
     <main class="content-wrapper">
         @yield('content')
     </main>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\AdminModel;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class EnsureApiToken
 {
@@ -21,11 +22,12 @@ class EnsureApiToken
         }
 
         $token = str_replace('Bearer ', '', $token);
+        Log::info("api token",['data' => $token]);
 
         // Since there's only one admin, retrieve that record directly.
         $admin = AdminModel::first();
 
-        if (!$admin || !Hash::check($token, $admin->api_token)) {
+        if ($token !== $admin->api_token) {
             return response()->json([
                 'message' => 'Unauthorized no api token',
             ], 401);

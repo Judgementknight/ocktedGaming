@@ -12,7 +12,6 @@ class UpdateLastActive
     public function handle($request, Closure $next)
     {
 
-
         if (session()->has('Student Data')) {
             // Get the user model from the session
             Log::info("Last Active Middleware is triggering");

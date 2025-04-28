@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Bebas+Neue&family=Caveat+Brush&family=Caveat:wght@400..700&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Joan&family=Kode+Mono:wght@400..700&family=Noto+Sans+JP:wght@100..900&family=Oswald:wght@200..700&family=Phudu:wght@300..900&family=Smooch+Sans:wght@100..900&family=Waiting+for+the+Sunrise&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Abel&family=Anton&family=Bangers&family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Bebas+Neue&family=Caveat+Brush&family=Caveat:wght@400..700&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Joan&family=Kode+Mono:wght@400..700&family=Noto+Sans+JP:wght@100..900&family=Oswald:wght@200..700&family=Phudu:wght@300..900&family=Roboto+Slab:wght@100..900&family=Smooch+Sans:wght@100..900&family=Teko:wght@300..700&family=Urbanist:ital,wght@0,100..900;1,100..900&family=Waiting+for+the+Sunrise&family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -46,8 +46,12 @@ input{
     font-style: normal;
 }
 
+th{
+    background-color: white;
+}
+
 tr:nth-child(odd){
-    background-color: #D9D9D9;
+    background-color: #f6f1f1;
 }
 
 .bggray{
@@ -65,6 +69,32 @@ tr:nth-child(odd){
 .animate {
     transition: all 200ms ease-in;
 }
+
+
+.font1{
+    font-family: "Barlow Condensed", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+.bgnavy{
+    background-color: #1b2436;
+}
+
+.bgteal{
+    background-color: #28978E;
+}
+
+table th{
+    padding: 0 10px;
+}
+
+table td{
+
+    padding: 5px 10px;
+}
+
+
 
 
 /* scrollbar */

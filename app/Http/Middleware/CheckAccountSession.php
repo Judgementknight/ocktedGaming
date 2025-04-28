@@ -17,10 +17,9 @@ class CheckAccountSession
     public function handle(Request $request, Closure $next): Response
     {
         \Log::debug('Session Data in CheckAccountSession:', session()->all());
-
-        if(!session()->has('user_id'))
+        if(!session()->has('StudentData') || session()->has('Teacher Data'))
         {
-            return redirect('/api/login-page');
+            return redirect()->route('no-access');
         }
         return $next($request);
     }

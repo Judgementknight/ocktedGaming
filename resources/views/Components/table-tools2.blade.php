@@ -6,7 +6,7 @@
             Table Tools
         </div>
         <div class="w-[60px] h-[50px] rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('game')}}">
+            <form method="GET" action="{{route('games-query')}}">
                 <input type="hidden" name="sort_by_name" value="name">
                 <input type="hidden" name="sort_order" value="{{ request('sort_order') === 'asc' ? 'desc' : 'asc' }}">
                 <button>
@@ -17,9 +17,9 @@
                 <p>Sort By Names</p>
             </div>
         </div>
-        
+
         <div class="w-[60px] h-[50px] rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{ route('game') }}">
+            <form method="GET" action="{{ route('games-query') }}">
                 <!-- Add the current 'search' parameter to preserve search state -->
                 <input type="hidden" name="status" value="{{ request('status') === 'active' ? 'inactive' : 'active' }}">
                 <button>
@@ -34,7 +34,7 @@
         </div>
 
         <div class="w-[60px] h-[50px]  rounded-[5px] kode flex items-center justify-center relative group hover:cursor-pointer">
-            <form method="GET" action="{{route('game')}}">
+            <form method="GET" action="{{route('games-query')}}">
                 <input type="hidden" name="games" value="{{request('games') === 'top' ? 'bottom' : 'top'}}">
                 <button>
                     <img class="h-full w-full active:scale-90 animate" src="{{asset('dashboard/icons/reset.png')}}">

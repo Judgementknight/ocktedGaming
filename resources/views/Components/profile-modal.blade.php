@@ -1,5 +1,5 @@
-<div id="profile-modal" class="w-[100%] h-full fixed hidden opacity-0 left-0 z-20 items-center justify-center transition-all duration-200 ease-in">
-    <div class="w-[700px] h-[400px] glass border-2 px-4 py-4 font1 text-white relative">
+<div id="profile-modal" class="w-full h-full fixed hidden opacity-0 left-0 z-20 bg-red-400 items-center justify-center transition-all duration-200 ease-in">
+    <div class="w-full md:w-[700px] h-[400px] glass border-2 px-4 py-4 font1 text-white bg-red-300 relative">
         <div class="w-full h-[50px] flex items-center justify-between">
             <div class="">
                 <h1 class="text-4xl">Profile</h1>
